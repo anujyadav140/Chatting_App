@@ -1,4 +1,4 @@
-# ChatUp
+# ChatUp 💻🖧
 This is a chatting app built using Flutter Framework and Firebase
 
 Link:
