@@ -1,4 +1,4 @@
-import 'package:chat_app/components/login_textfield.dart';
+import 'package:chat_app/components/my_textfield.dart';
 import 'package:chat_app/components/my_button.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 //email textfield
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: LoginTextfield(
+                  child: MyTextfield(
                     controller: emailController,
                     hintText: 'Email',
                     obscureText: false,
@@ -78,7 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 //password textfield
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: LoginTextfield(
+                  child: MyTextfield(
                     controller: passwordController,
                     hintText: 'Password',
                     obscureText: true,
@@ -86,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: LoginTextfield(
+                  child: MyTextfield(
                     controller: confirmPasswordController,
                     hintText: 'Confirm Password',
                     obscureText: true,

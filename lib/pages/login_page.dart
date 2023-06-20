@@ -1,4 +1,4 @@
-import 'package:chat_app/components/login_textfield.dart';
+import 'package:chat_app/components/my_textfield.dart';
 import 'package:chat_app/components/my_button.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                 //email textfield
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: LoginTextfield(
+                  child: MyTextfield(
                     controller: emailController,
                     hintText: 'Email',
                     obscureText: false,
@@ -71,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
                 //password textfield
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: LoginTextfield(
+                  child: MyTextfield(
                     controller: passwordController,
                     hintText: 'Password',
                     obscureText: true,
