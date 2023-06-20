@@ -52,6 +52,7 @@ class _ChattingPageState extends State<ChattingPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.endUserEmail),
+          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.settings))],
         ),
         //messages
         body: Column(
@@ -94,6 +95,7 @@ class _ChattingPageState extends State<ChattingPage> {
 
   //build message item
   Widget _buildMessageItem(DocumentSnapshot document) {
+    Color chatBubbleColor;
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
     //align the end user messages to left and send user message to the right
@@ -116,7 +118,13 @@ class _ChattingPageState extends State<ChattingPage> {
                   : MainAxisAlignment.start,
           children: [
             Text(data['senderEmail']),
-            ChatBubble(message: data['message'])
+            ChatBubble(
+              message: data['message'],
+              chatBubbleColor:
+                  data['senderId'] == _firebaseAuth.currentUser!.uid
+                      ? chatBubbleColor = Colors.blueAccent
+                      : chatBubbleColor = Colors.pinkAccent,
+            )
           ],
         ),
       ),
