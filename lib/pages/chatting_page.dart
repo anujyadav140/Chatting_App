@@ -1,5 +1,4 @@
 import 'dart:html';
-
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
@@ -10,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ChattingPage extends StatefulWidget {
   final String endUserEmail;
@@ -60,32 +61,65 @@ class _ChattingPageState extends State<ChattingPage> {
   Widget build(BuildContext context) {
     _speech = stt.SpeechToText();
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.endUserEmail),
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
-        ],
-      ),
-      //messages
-      body: Column(
-        children: [
-          Expanded(
-            child: _displayMessageList(),
-          ),
-          _writeMessageInput(),
-        ],
-      ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
-      floatingActionButton: AvatarGlow(
+        appBar: AppBar(
+          title: Text(widget.endUserEmail),
+          backgroundColor: Colors.blueAccent,
+          actions: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
+          ],
+        ),
+        //messages
+        // body: Column(
+        //   children: [
+        //     Expanded(
+        //       child: _displayMessageList(),
+        //     ),
+        //     _writeMessageInput(),
+        //   ],
+        // ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: _displayMessageList(),
+                ),
+                _writeMessageInput(),
+              ],
+            ),
+            if (_isListening)
+              Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LoadingAnimationWidget.staggeredDotsWave(
+                      color: Colors.red,
+                      size: 100.0,
+                    ),
+                    const Text(
+                      " Listening ...",
+                      style: TextStyle(fontSize: 25.0, color: Colors.red),
+                    )
+                  ],
+                ),
+              ),
+          ],
+        ),
+        floatingActionButtonLocation:
+            FloatingActionButtonLocation.miniCenterTop,
+        floatingActionButton: AvatarGlow(
           animate: _isListening,
           glowColor: Colors.red,
           duration: const Duration(milliseconds: 2000),
           repeatPauseDuration: const Duration(milliseconds: 100),
           repeat: true,
           endRadius: 75.0,
-          child: IconButton(onPressed: _listen, icon: const Icon(Icons.mic))),
-    );
+          child: FloatingActionButton(
+            onPressed: _listen,
+            child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+          ),
+        ));
     //user input
   }
 
@@ -203,6 +237,7 @@ class _ChattingPageState extends State<ChattingPage> {
   }
 
   void _listen() async {
+    window.navigator.getUserMedia(audio: true).then((value) => {});
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('onStatus: $status'),
@@ -226,8 +261,8 @@ class _ChattingPageState extends State<ChattingPage> {
     } else {
       setState(() {
         _isListening = !_isListening; // Toggle the flag
-        _messageFocusNode.requestFocus();
         _speech.stop();
+        _messageFocusNode.requestFocus();
       });
     }
   }
