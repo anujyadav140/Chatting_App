@@ -1,10 +1,12 @@
-import 'dart:html';
+// import 'dart:html';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
 import 'package:chat_app/services/chatting/chatting_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:highlight_text/highlight_text.dart';
@@ -38,6 +40,16 @@ class _ChattingPageState extends State<ChattingPage> {
     super.initState();
   }
 
+  bool isAndroid() {
+    if (kIsWeb) {
+      // Running on the web
+      return false;
+    } else {
+      // Running on Android
+      return true;
+    }
+  }
+
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await _chattingService.sendMessage(
@@ -65,7 +77,47 @@ class _ChattingPageState extends State<ChattingPage> {
           title: Text(widget.endUserEmail),
           backgroundColor: Colors.blueAccent,
           actions: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.settings),
+            ),
+            IconButton(
+              onPressed: () async {
+                final results = await FilePicker.platform.pickFiles(
+                  allowMultiple: false,
+                  type: FileType.custom,
+                  allowedExtensions: ['png', 'jpg'],
+                );
+                if (isAndroid()) {
+                  if (results == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("No file found :()"),
+                      ),
+                    );
+                    return null;
+                  }
+                  final filePath = results.files.single.path!;
+                  final fileName = results.files.single.name;
+                  print(filePath);
+                  print(fileName);
+                  _chattingService
+                      .uploadFileOnMobile(filePath, fileName)
+                      .then((value) => print("File Uploaded! :)"));
+                } else {
+                  if (results != null && results.files.isNotEmpty) {
+                    final fileBytes = results.files.first.bytes;
+                    final fileName = results.files.first.name;
+                    print(fileBytes);
+                    print(fileName);
+                    _chattingService
+                        .uploadFileOnWeb(fileBytes, fileName)
+                        .then((value) => print("File Uploaded! :)"));
+                  }
+                }
+              },
+              icon: const Icon(Icons.image),
+            )
           ],
         ),
         //messages
@@ -237,7 +289,7 @@ class _ChattingPageState extends State<ChattingPage> {
   }
 
   void _listen() async {
-    window.navigator.getUserMedia(audio: true).then((value) => {});
+    // window.navigator.getUserMedia(audio: true).then((value) => {});
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('onStatus: $status'),

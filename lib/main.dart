@@ -1,4 +1,4 @@
-import 'dart:js';
+// import 'dart:js';
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/pages/login_page.dart';
 import 'package:chat_app/pages/register_page.dart';
