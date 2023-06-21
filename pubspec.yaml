@@ -39,6 +39,9 @@ dependencies:
   firebase_auth: ^4.6.3
   provider:
   cloud_firestore: ^4.8.1
+  speech_to_text: ^6.1.1
+  highlight_text: ^1.6.0
+  avatar_glow: ^2.0.2
 
 dev_dependencies:
   flutter_test:

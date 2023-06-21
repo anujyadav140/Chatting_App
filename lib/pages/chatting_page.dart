@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
 import 'package:chat_app/services/chatting/chatting_service.dart';
@@ -7,6 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:highlight_text/highlight_text.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChattingPage extends StatefulWidget {
   final String endUserEmail;
@@ -23,6 +26,10 @@ class _ChattingPageState extends State<ChattingPage> {
   final ChattingService _chattingService = ChattingService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _messageFocusNode = FocusNode(); // New FocusNode
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _text = 'Press the button and start speaking';
 
   @override
   void initState() {
@@ -36,6 +43,7 @@ class _ChattingPageState extends State<ChattingPage> {
           widget.endUserId, _messageController.text);
       //clear the controller
       _messageController.clear();
+      _messageFocusNode.requestFocus();
       // Scroll to the bottom when a new message is sent
       _scrollToBottom();
     }
@@ -44,53 +52,69 @@ class _ChattingPageState extends State<ChattingPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _speech = stt.SpeechToText();
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.endUserEmail),
-          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.settings))],
-        ),
-        //messages
-        body: Column(
-          children: [
-            Expanded(
-              child: _displayMessageList(),
-            ),
-            _writeMessageInput(),
-          ],
-        ));
+      appBar: AppBar(
+        title: Text(widget.endUserEmail),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
+        ],
+      ),
+      //messages
+      body: Column(
+        children: [
+          Expanded(
+            child: _displayMessageList(),
+          ),
+          _writeMessageInput(),
+        ],
+      ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterDocked,
+      floatingActionButton: AvatarGlow(
+          animate: _isListening,
+          glowColor: Colors.red,
+          duration: const Duration(milliseconds: 2000),
+          repeatPauseDuration: const Duration(milliseconds: 100),
+          repeat: true,
+          endRadius: 75.0,
+          child: IconButton(onPressed: _listen, icon: const Icon(Icons.mic))),
+    );
     //user input
   }
 
   //display message list
   Widget _displayMessageList() {
     return StreamBuilder(
-      stream: _chattingService.getMessages(
-          widget.endUserId, _firebaseAuth.currentUser!.uid),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error${snapshot.error}');
-        }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text("Loading ...");
-        }
-        return SingleChildScrollView(
-          reverse: true,
-          child: ListView.builder(
-            controller: _scrollController,
-            shrinkWrap: true,
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              return _buildMessageItem(snapshot.data!.docs[index]);
-            },
-          ),
-        );
-      },
-    );
+        stream: _chattingService.getMessages(
+            widget.endUserId, _firebaseAuth.currentUser!.uid),
+        builder: (context, snapshot) {
+          if (!_isListening) {
+            if (snapshot.hasError) {
+              return Text('Error${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Text("Loading ...");
+            }
+          }
+          return SingleChildScrollView(
+            reverse: true,
+            child: ListView.builder(
+              controller: _scrollController,
+              shrinkWrap: true,
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                return _buildMessageItem(snapshot.data!.docs[index]);
+              },
+            ),
+          );
+        });
   }
 
   //build message item
@@ -143,6 +167,7 @@ class _ChattingPageState extends State<ChattingPage> {
           // ),
           child: TextField(
             controller: _messageController,
+            focusNode: _messageFocusNode,
             onSubmitted: (value) {
               sendMessage();
             },
@@ -175,5 +200,35 @@ class _ChattingPageState extends State<ChattingPage> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print('onStatus: $status'),
+        onError: (status) => print('onError: $status'),
+      );
+      if (available) {
+        setState(() {
+          _isListening = true;
+        });
+        _speech.listen(
+          onResult: (result) => setState(() {
+            _text = result.recognizedWords;
+            _messageController.text = _text;
+            print(_text);
+            // if (result.hasConfidenceRating && result.confidence > 0) {
+            //   _confidence = result.confidence;
+            // }
+          }),
+        );
+      }
+    } else {
+      setState(() {
+        _isListening = !_isListening; // Toggle the flag
+        _messageFocusNode.requestFocus();
+        _speech.stop();
+      });
+    }
   }
 }
