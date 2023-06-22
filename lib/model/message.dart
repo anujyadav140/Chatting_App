@@ -6,6 +6,7 @@ class Message {
   final String endUserId;
   final String message;
   final Timestamp time;
+  final String? image; // Optional field for image
 
   Message({
     required this.senderId,
@@ -13,9 +14,10 @@ class Message {
     required this.endUserId,
     required this.message,
     required this.time,
+    this.image, // Optional parameter for image
   });
 
-  //convert datatype to map
+  // Convert datatype to map
   Map<String, dynamic> toMap() {
     return {
       'senderId': senderId,
@@ -23,6 +25,7 @@ class Message {
       'endUserId': endUserId,
       'message': message,
       'timestamp': time,
+      'image': image, // Include image in the map
     };
   }
 }

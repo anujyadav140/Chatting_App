@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ChattingPage extends StatefulWidget {
@@ -33,7 +32,7 @@ class _ChattingPageState extends State<ChattingPage> {
   late stt.SpeechToText _speech;
   bool _isListening = false;
   String _text = 'Press the button and start speaking';
-
+  bool isImage = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -72,17 +71,29 @@ class _ChattingPageState extends State<ChattingPage> {
   @override
   Widget build(BuildContext context) {
     _speech = stt.SpeechToText();
+    String chatroomId = "${widget.endUserId}-${_firebaseAuth.currentUser!.uid}";
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.endUserEmail),
           backgroundColor: Colors.blueAccent,
           actions: [
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                // List<String> images = [];
+                // String chatroomId =
+                //     "${widget.endUserId}-${_firebaseAuth.currentUser!.uid}";
+                // _chattingService.getImageDownloadURL(chatroomId).then((value) {
+                //   setState(() {
+                //     images = value;
+                //     print(images);
+                //   });
+                // });
+              },
               icon: const Icon(Icons.settings),
             ),
             IconButton(
               onPressed: () async {
+                isImage = true;
                 final results = await FilePicker.platform.pickFiles(
                   allowMultiple: false,
                   type: FileType.custom,
@@ -102,17 +113,32 @@ class _ChattingPageState extends State<ChattingPage> {
                   print(filePath);
                   print(fileName);
                   _chattingService
-                      .uploadFileOnMobile(filePath, fileName)
-                      .then((value) => print("File Uploaded! :)"));
+                      .uploadFileOnMobile(filePath, fileName, widget.endUserId,
+                          _firebaseAuth.currentUser!.uid)
+                      .then((value) => print("File Uploaded! :)"))
+                      .whenComplete(() => _chattingService
+                              .getImageDownloadURL(widget.endUserId,
+                                  _firebaseAuth.currentUser!.uid)
+                              .then((value) {
+                            print(value);
+                            _chattingService.getImages(
+                                widget.endUserId, value.toString());
+                          }));
                 } else {
                   if (results != null && results.files.isNotEmpty) {
                     final fileBytes = results.files.first.bytes;
                     final fileName = results.files.first.name;
-                    print(fileBytes);
+                    // print(fileBytes);
                     print(fileName);
                     _chattingService
-                        .uploadFileOnWeb(fileBytes, fileName)
-                        .then((value) => print("File Uploaded! :)"));
+                        .uploadFileOnWeb(fileBytes, fileName, widget.endUserId,
+                            _firebaseAuth.currentUser!.uid)
+                        .then((value) => print("File Uploaded! :)"))
+                        .whenComplete(() => _chattingService
+                            .getImageDownloadURL(widget.endUserId,
+                                _firebaseAuth.currentUser!.uid)
+                            .then((value) => _chattingService.getImages(
+                                widget.endUserId, value.toString())));
                   }
                 }
               },
@@ -176,11 +202,39 @@ class _ChattingPageState extends State<ChattingPage> {
   }
 
   //display message list
+  // Widget _displayMessageList() {
+  //   return StreamBuilder(
+  //       stream: _chattingService.getMessages(
+  //           widget.endUserId, _firebaseAuth.currentUser!.uid),
+  //       builder: (context, snapshot) {
+  //         //if statement for the speech to text button !---FIX THE PROBLEM OF THE FLICKERING
+  //         if (!_isListening) {
+  //           if (snapshot.hasError) {
+  //             return Text('Error${snapshot.error}');
+  //           }
+  //           if (snapshot.connectionState == ConnectionState.waiting) {
+  //             return const Text("Loading ...");
+  //           }
+  //         }
+  //         return SingleChildScrollView(
+  //           reverse: true,
+  //           child: ListView.builder(
+  //             controller: _scrollController,
+  //             shrinkWrap: true,
+  //             itemCount: snapshot.data!.docs.length,
+  //             itemBuilder: (context, index) {
+  //               return _buildMessageItem(snapshot.data!.docs[index]);
+  //             },
+  //           ),
+  //         );
+  //       });
+  // }
   Widget _displayMessageList() {
     return StreamBuilder(
         stream: _chattingService.getMessages(
             widget.endUserId, _firebaseAuth.currentUser!.uid),
         builder: (context, snapshot) {
+          //if statement for the speech to text button !---FIX THE PROBLEM OF THE FLICKERING
           if (!_isListening) {
             if (snapshot.hasError) {
               return Text('Error${snapshot.error}');
@@ -228,13 +282,25 @@ class _ChattingPageState extends State<ChattingPage> {
                   : MainAxisAlignment.start,
           children: [
             Text(data['senderEmail']),
-            ChatBubble(
-              message: data['message'],
-              chatBubbleColor:
-                  data['senderId'] == _firebaseAuth.currentUser!.uid
-                      ? chatBubbleColor = Colors.blueAccent
-                      : chatBubbleColor = Colors.pinkAccent,
-            )
+            data['message'].toString().isNotEmpty
+                ? ChatBubble(
+                    message: data['message'],
+                    image: null,
+                    isImage: false,
+                    chatBubbleColor:
+                        data['senderId'] == _firebaseAuth.currentUser!.uid
+                            ? chatBubbleColor = Colors.blueAccent
+                            : chatBubbleColor = Colors.pinkAccent,
+                  )
+                : ChatBubble(
+                    message: null,
+                    image: data['image'],
+                    isImage: true,
+                    chatBubbleColor:
+                        data['senderId'] == _firebaseAuth.currentUser!.uid
+                            ? chatBubbleColor = Colors.blueAccent
+                            : chatBubbleColor = Colors.pinkAccent,
+                  )
           ],
         ),
       ),

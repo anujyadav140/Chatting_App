@@ -44,8 +44,8 @@ dependencies:
   speech_to_text: ^6.1.1
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
-  permission_handler: ^10.3.0
   loading_animation_widget: ^1.2.0+4
+  cloud_functions: ^4.3.3
   
 dev_dependencies:
   flutter_test:
