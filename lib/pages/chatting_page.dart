@@ -9,9 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_tts/flutter_tts_web.dart';
 import 'package:highlight_text/highlight_text.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class ChattingPage extends StatefulWidget {
   final String endUserEmail;
@@ -29,14 +33,40 @@ class _ChattingPageState extends State<ChattingPage> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final ScrollController _scrollController = ScrollController();
   final FocusNode _messageFocusNode = FocusNode(); // New FocusNode
-  late stt.SpeechToText _speech;
+  final SpeechToText speechToText = SpeechToText();
+  late String speech = '';
+  FlutterTts flutterTts = FlutterTts();
   bool _isListening = false;
-  String _text = 'Press the button and start speaking';
   bool isImage = false;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    initSpeechToText();
+  }
+
+  Future<void> initSpeechToText() async {
+    await speechToText.initialize();
+    setState(() {});
+  }
+
+  Future<void> startListening() async {
+    _isListening = true;
+    await speechToText.listen(onResult: onSpeechResult);
+    setState(() {});
+  }
+
+  Future<void> stopListening() async {
+    _isListening = !_isListening;
+    await speechToText.stop();
+    _messageFocusNode.requestFocus();
+    setState(() {});
+  }
+
+  void onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      speech = result.recognizedWords;
+      _messageController.text = speech;
+    });
   }
 
   bool isAndroid() {
@@ -63,14 +93,15 @@ class _ChattingPageState extends State<ChattingPage> {
 
   @override
   void dispose() {
+    super.dispose();
     _scrollController.dispose();
     _messageFocusNode.dispose();
-    super.dispose();
+    speechToText.stop();
   }
 
   @override
   Widget build(BuildContext context) {
-    _speech = stt.SpeechToText();
+    // _speech = stt.SpeechToText();
     String chatroomId = "${widget.endUserId}-${_firebaseAuth.currentUser!.uid}";
     return Scaffold(
         appBar: AppBar(
@@ -78,16 +109,8 @@ class _ChattingPageState extends State<ChattingPage> {
           backgroundColor: Colors.blueAccent,
           actions: [
             IconButton(
-              onPressed: () {
-                // List<String> images = [];
-                // String chatroomId =
-                //     "${widget.endUserId}-${_firebaseAuth.currentUser!.uid}";
-                // _chattingService.getImageDownloadURL(chatroomId).then((value) {
-                //   setState(() {
-                //     images = value;
-                //     print(images);
-                //   });
-                // });
+              onPressed: () async {
+                var result = await flutterTts.speak("Hello World");
               },
               icon: const Icon(Icons.settings),
             ),
@@ -147,14 +170,6 @@ class _ChattingPageState extends State<ChattingPage> {
           ],
         ),
         //messages
-        // body: Column(
-        //   children: [
-        //     Expanded(
-        //       child: _displayMessageList(),
-        //     ),
-        //     _writeMessageInput(),
-        //   ],
-        // ),
         body: Stack(
           children: [
             Column(
@@ -194,41 +209,23 @@ class _ChattingPageState extends State<ChattingPage> {
           repeat: true,
           endRadius: 75.0,
           child: FloatingActionButton(
-            onPressed: _listen,
+            onPressed: () async {
+              if (await speechToText.hasPermission &&
+                  speechToText.isNotListening) {
+                await startListening();
+              } else if (speechToText.isListening) {
+                await stopListening();
+                print(speech);
+              } else {
+                initSpeechToText();
+              }
+            },
             child: Icon(_isListening ? Icons.mic : Icons.mic_none),
           ),
         ));
     //user input
   }
 
-  //display message list
-  // Widget _displayMessageList() {
-  //   return StreamBuilder(
-  //       stream: _chattingService.getMessages(
-  //           widget.endUserId, _firebaseAuth.currentUser!.uid),
-  //       builder: (context, snapshot) {
-  //         //if statement for the speech to text button !---FIX THE PROBLEM OF THE FLICKERING
-  //         if (!_isListening) {
-  //           if (snapshot.hasError) {
-  //             return Text('Error${snapshot.error}');
-  //           }
-  //           if (snapshot.connectionState == ConnectionState.waiting) {
-  //             return const Text("Loading ...");
-  //           }
-  //         }
-  //         return SingleChildScrollView(
-  //           reverse: true,
-  //           child: ListView.builder(
-  //             controller: _scrollController,
-  //             shrinkWrap: true,
-  //             itemCount: snapshot.data!.docs.length,
-  //             itemBuilder: (context, index) {
-  //               return _buildMessageItem(snapshot.data!.docs[index]);
-  //             },
-  //           ),
-  //         );
-  //       });
-  // }
   Widget _displayMessageList() {
     return StreamBuilder(
         stream: _chattingService.getMessages(
@@ -312,11 +309,6 @@ class _ChattingPageState extends State<ChattingPage> {
     return Row(
       children: [
         Expanded(
-          // child: MyTextfield(
-          //   controller: _messageController,
-          //   hintText: "Write a message ...",
-          //   obscureText: false,
-          // ),
           child: TextField(
             controller: _messageController,
             focusNode: _messageFocusNode,
@@ -354,34 +346,44 @@ class _ChattingPageState extends State<ChattingPage> {
     );
   }
 
-  void _listen() async {
-    // window.navigator.getUserMedia(audio: true).then((value) => {});
-    if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (status) => print('onStatus: $status'),
-        onError: (status) => print('onError: $status'),
-      );
-      if (available) {
-        setState(() {
-          _isListening = true;
-        });
-        _speech.listen(
-          onResult: (result) => setState(() {
-            _text = result.recognizedWords;
-            _messageController.text = _text;
-            print(_text);
-            // if (result.hasConfidenceRating && result.confidence > 0) {
-            //   _confidence = result.confidence;
-            // }
-          }),
-        );
-      }
-    } else {
-      setState(() {
-        _isListening = !_isListening; // Toggle the flag
-        _speech.stop();
-        _messageFocusNode.requestFocus();
-      });
-    }
-  }
+  // void _listen() async {
+  //   // window.navigator.getUserMedia(audio: true).then((value) => {});
+  //   if (!_isListening) {
+  //     bool available = await _speech.initialize(
+  //       onStatus: (status) {
+  //         setState(() {
+  //           if (status.toString() == "notListening") {
+  //             _isListening = false;
+  //             String notListeningPrompt = "Exiting listening mode ...";
+  //             var result = flutterTts.speak(notListeningPrompt);
+  //           }
+  //           print('onStatus: $status');
+  //         });
+  //       },
+  //       onError: (status) => print('onError: $status'),
+  //     );
+  //     if (available) {
+  //       setState(() {
+  //         _isListening = true;
+  //       });
+  //       // _speech.listen(
+  //       //   listenFor: const Duration(seconds: 20),
+  //       //   onResult: (result) => setState(() {
+  //       //     _text = result.recognizedWords;
+  //       //     _messageController.text = _text;
+  //       //     print(_text);
+  //       //     // if (result.hasConfidenceRating && result.confidence > 0) {
+  //       //     //   _confidence = result.confidence;
+  //       //     // }
+  //       //   }),
+  //       // );
+  //     }
+  //   } else {
+  //     setState(() {
+  //       _isListening = !_isListening; // Toggle the flag
+  //       // _speech.stop();
+  //       _messageFocusNode.requestFocus();
+  //     });
+  //   }
+  // }
 }

@@ -41,7 +41,8 @@ dependencies:
   file_picker: ^5.3.2
   cloud_firestore: ^4.8.1
   firebase_storage: ^11.2.3
-  speech_to_text: ^6.1.1
+  speech_to_text: ^6.2.0
+  flutter_tts: ^3.7.0
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
   loading_animation_widget: ^1.2.0+4
