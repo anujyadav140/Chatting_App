@@ -1,4 +1,3 @@
-// import 'dart:html';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:flutter_tts/flutter_tts_web.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -34,8 +32,8 @@ class _ChattingPageState extends State<ChattingPage> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _messageFocusNode = FocusNode(); // New FocusNode
   final SpeechToText speechToText = SpeechToText();
-  late String speech = '';
   FlutterTts flutterTts = FlutterTts();
+  late String speech = '';
   bool _isListening = false;
   bool isImage = false;
   @override
@@ -62,11 +60,17 @@ class _ChattingPageState extends State<ChattingPage> {
     setState(() {});
   }
 
-  void onSpeechResult(SpeechRecognitionResult result) {
-    setState(() {
-      speech = result.recognizedWords;
-      _messageController.text = speech;
-    });
+  void onSpeechResult(SpeechRecognitionResult result) async {
+    // setState(() async {
+    speech = result.recognizedWords;
+    _messageController.text = speech;
+    print(speech);
+    if (speech.contains("go back")) {
+      await flutterTts.speak("Going back ...");
+      await Future.delayed(const Duration(seconds: 2));
+      Navigator.of(context).pop();
+    }
+    // });
   }
 
   bool isAndroid() {
@@ -109,9 +113,7 @@ class _ChattingPageState extends State<ChattingPage> {
           backgroundColor: Colors.blueAccent,
           actions: [
             IconButton(
-              onPressed: () async {
-                var result = await flutterTts.speak("Hello World");
-              },
+              onPressed: () async {},
               icon: const Icon(Icons.settings),
             ),
             IconButton(
