@@ -1,3 +1,4 @@
+import 'package:chat_app/components/voice_message.dart';
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/pages/login_page.dart';
 import 'package:chat_app/pages/register_page.dart';
@@ -28,7 +29,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const AuthGate(),
+      // home: const AuthGate(),
+      home: const VoiceMessage(),
     );
   }
 }

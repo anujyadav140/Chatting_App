@@ -46,7 +46,11 @@ dependencies:
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
   loading_animation_widget: ^1.2.0+4
-  cloud_functions: ^4.3.3
+  record: ^4.4.4
+  audioplayers: ^4.1.0
+  permission_handler: 
+  microphone: ^0.1.0
+  just_audio: ^0.9.34
   
 dev_dependencies:
   flutter_test:
