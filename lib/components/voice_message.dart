@@ -124,12 +124,17 @@ class _VoiceMessageState extends State<VoiceMessage> {
                   child: const Text('Play Recording'),
                 ),
               Slider(
-                min: 0,
-                max: duration.inSeconds.toDouble(),
-                value: position.inSeconds.toDouble(),
+                min: 0.0,
+                max: 1.0,
+                value: duration.inSeconds > 0
+                    ? position.inSeconds.toDouble() /
+                        duration.inSeconds.toDouble()
+                    : 0.0,
                 onChanged: (value) {
-                  final position = Duration(seconds: value.toInt());
-                  audioPlayer.seek(position);
+                  final newPosition = Duration(
+                    seconds: (value * duration.inSeconds.toDouble()).toInt(),
+                  );
+                  audioPlayer.seek(newPosition);
                   audioPlayer.resume();
                 },
               ),
