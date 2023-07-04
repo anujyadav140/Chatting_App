@@ -49,7 +49,6 @@ dependencies:
   record: ^4.4.4
   audioplayers: ^4.1.0
   permission_handler: 
-  microphone: ^0.1.0
   just_audio: ^0.9.34
   
 dev_dependencies:

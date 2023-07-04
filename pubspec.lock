@@ -416,30 +416,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  microphone:
-    dependency: "direct main"
-    description:
-      name: microphone
-      sha256: "89bbd81d9029cc659eb6c0f9c7564f9e4feb7a7d8166df3d69ab01f59a749e5f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
-  microphone_platform_interface:
-    dependency: transitive
-    description:
-      name: microphone_platform_interface
-      sha256: "172b1dc2fed41f0f8c9bd611c107eebb4dd1d4cf6452b963437624c4f37f997e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0+1"
-  microphone_web:
-    dependency: transitive
-    description:
-      name: microphone_web
-      sha256: "68903d6194777cc4cc2a023a86932cddbdd5943d9e61d15571877027beae2c77"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
   nested:
     dependency: transitive
     description:

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:microphone/microphone.dart';
 
 class VoiceMessage extends StatefulWidget {
   const VoiceMessage({super.key});
@@ -13,7 +12,6 @@ class VoiceMessage extends StatefulWidget {
 
 class _VoiceMessageState extends State<VoiceMessage> {
   late Record audioRecord;
-  final microphoneRecorder = MicrophoneRecorder()..init();
   late AudioPlayer audioPlayer;
   bool isRecording = false;
   bool isPlaying = false;
@@ -51,7 +49,6 @@ class _VoiceMessageState extends State<VoiceMessage> {
   void dispose() {
     audioPlayer.dispose();
     audioRecord.dispose();
-    microphoneRecorder.dispose();
     super.dispose();
   }
 
@@ -69,14 +66,6 @@ class _VoiceMessageState extends State<VoiceMessage> {
     }
   }
 
-  Future<void> startRecordingWeb() async {
-    try {
-      microphoneRecorder.start();
-    } catch (e) {
-      print("error recording stuff: $e");
-    }
-  }
-
   Future<void> stopRecording() async {
     try {
       String? path = await audioRecord.stop();
@@ -86,15 +75,6 @@ class _VoiceMessageState extends State<VoiceMessage> {
       });
     } catch (e) {
       print("error stopping recording: $e");
-    }
-  }
-
-  Future<void> stopRecordingWeb() async {
-    try {
-      await microphoneRecorder.stop();
-      recordingUrl = microphoneRecorder.value.recording!.url;
-    } catch (e) {
-      print("error recording stuff: $e");
     }
   }
 
