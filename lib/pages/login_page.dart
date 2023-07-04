@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Padding(
                   padding: EdgeInsets.all(15.0),
                   child: Text(
-                    "Welcome back you\ 've been missed!",
+                    "Welcome back you 've been missed!",
                     style: TextStyle(
                       fontSize: 16,
                     ),

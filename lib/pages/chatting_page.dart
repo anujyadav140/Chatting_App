@@ -3,19 +3,15 @@ import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
-import 'package:chat_app/components/my_textfield.dart';
 import 'package:chat_app/services/chatting/chatting_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -226,7 +222,7 @@ class _ChattingPageState extends State<ChattingPage> {
                         content: Text("No file found :()"),
                       ),
                     );
-                    return null;
+                    return;
                   }
                   final filePath = results.files.single.path!;
                   final fileName = results.files.single.name;

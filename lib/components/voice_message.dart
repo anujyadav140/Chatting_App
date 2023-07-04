@@ -119,7 +119,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
               const SizedBox(
                 height: 60,
               ),
-              if (!isRecording && audioPath != null)
+              if (!isRecording)
                 ElevatedButton(
                   onPressed: playRecording,
                   child: const Text('Upload Recording'),

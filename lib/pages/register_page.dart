@@ -25,9 +25,9 @@ class _RegisterPageState extends State<RegisterPage> {
           const SnackBar(content: Text("Password does NOT match!")));
       return;
     } else {
-      final _authService = Provider.of<AuthService>(context, listen: false);
+      final authService = Provider.of<AuthService>(context, listen: false);
       try {
-        await _authService.registerWithEmailAndPassword(
+        await authService.registerWithEmailAndPassword(
             emailController.text, passwordController.text);
       } catch (e) {
         ScaffoldMessenger.of(context)
@@ -60,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const Padding(
                   padding: EdgeInsets.all(15.0),
                   child: Text(
-                    "Let\'s create an account for you!",
+                    "Let's create an account for you!",
                     style: TextStyle(
                       fontSize: 16,
                     ),

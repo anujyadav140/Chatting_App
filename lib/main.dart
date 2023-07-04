@@ -1,10 +1,6 @@
-import 'package:chat_app/components/voice_message.dart';
 import 'package:chat_app/firebase_options.dart';
-import 'package:chat_app/pages/login_page.dart';
-import 'package:chat_app/pages/register_page.dart';
 import 'package:chat_app/services/authentication/auth_gate.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
-import 'package:chat_app/services/authentication/login_or_register.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';

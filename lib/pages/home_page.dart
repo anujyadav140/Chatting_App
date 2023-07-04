@@ -26,8 +26,8 @@ class _HomePageState extends State<HomePage> {
   //logout user
   void logout() {
     //get auth service
-    final _authService = Provider.of<AuthService>(context, listen: false);
-    _authService.logout();
+    final authService = Provider.of<AuthService>(context, listen: false);
+    authService.logout();
   }
 
   @override
