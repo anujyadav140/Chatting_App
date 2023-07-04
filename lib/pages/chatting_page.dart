@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
@@ -8,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -33,11 +36,16 @@ class _ChattingPageState extends State<ChattingPage> {
   final FocusNode _messageFocusNode = FocusNode(); // New FocusNode
   final SpeechToText speechToText = SpeechToText();
   FlutterTts flutterTts = FlutterTts();
+  late FlutterSoundRecorder myRecorder;
   late String speech = '';
   bool _isListening = false;
   bool isImage = false;
+  bool isVoiceMessage = false;
+  bool isRecording = false;
+  String audioPath = '';
   @override
   void initState() {
+    myRecorder = FlutterSoundRecorder();
     super.initState();
     initSpeechToText();
   }
@@ -95,11 +103,42 @@ class _ChattingPageState extends State<ChattingPage> {
     }
   }
 
+  Future<void> startRecording() async {
+    try {
+      await myRecorder.openRecorder().then((e) async {
+        await myRecorder.startRecorder(
+          codec: Codec.defaultCodec,
+          toFile: 'voiceStore',
+        );
+        return 'ok';
+      });
+      setState(() {
+        isRecording = true;
+      });
+    } catch (e) {
+      print("error recording stuff: $e");
+    }
+  }
+
+  Future<void> stopRecording() async {
+    try {
+      String? path = await myRecorder.stopRecorder();
+      setState(() {
+        isRecording = false;
+        audioPath = path!;
+      });
+      print(audioPath);
+    } catch (e) {
+      print("error stopping recording: $e");
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
     _scrollController.dispose();
     _messageFocusNode.dispose();
+    myRecorder.dispositionStream();
     speechToText.stop();
   }
 
@@ -138,7 +177,7 @@ class _ChattingPageState extends State<ChattingPage> {
                   print(filePath);
                   print(fileName);
                   _chattingService
-                      .uploadFileOnMobile(filePath, fileName, widget.endUserId,
+                      .uploadImageOnMobile(filePath, fileName, widget.endUserId,
                           _firebaseAuth.currentUser!.uid)
                       .then((value) => print("File Uploaded! :)"))
                       .whenComplete(() => _chattingService
@@ -156,7 +195,7 @@ class _ChattingPageState extends State<ChattingPage> {
                     // print(fileBytes);
                     print(fileName);
                     _chattingService
-                        .uploadFileOnWeb(fileBytes, fileName, widget.endUserId,
+                        .uploadImageOnWeb(fileBytes, fileName, widget.endUserId,
                             _firebaseAuth.currentUser!.uid)
                         .then((value) => print("File Uploaded! :)"))
                         .whenComplete(() => _chattingService
@@ -331,10 +370,26 @@ class _ChattingPageState extends State<ChattingPage> {
             ),
           ),
         ),
-        IconButton(
-          onPressed: sendMessage,
-          icon: const Icon(Icons.send),
-          iconSize: 40,
+        // IconButton(
+        //   onPressed: sendMessage,
+        //   icon: const Icon(Icons.send),
+        //   iconSize: 40,
+        // ),
+        GestureDetector(
+          onLongPress: () {
+            print("hello");
+            startRecording();
+          },
+          onLongPressEnd: (details) {
+            print(details);
+            stopRecording();
+            String fileName =
+                "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
+            _chattingService.uploadVoiceMessage(audioPath, fileName,
+                widget.endUserId, _firebaseAuth.currentUser!.uid);
+          },
+          child:
+              const IconButton(onPressed: null, icon: Icon(Icons.voice_chat)),
         ),
       ],
     );

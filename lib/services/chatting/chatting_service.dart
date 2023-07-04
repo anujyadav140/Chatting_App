@@ -59,7 +59,7 @@ class ChattingService extends ChangeNotifier {
   }
 
   //upload image
-  Future<void> uploadFileOnMobile(
+  Future<void> uploadImageOnMobile(
       String filePath, String fileName, String userId, String endUserId) async {
     List<String> chatroom = [userId, endUserId];
     chatroom.sort();
@@ -73,7 +73,25 @@ class ChattingService extends ChangeNotifier {
     }
   }
 
-  Future<void> uploadFileOnWeb(dynamic fileBytes, String fileName,
+  //upload voice message
+  Future<void> uploadVoiceMessage(
+      String filePath, String fileName, String userId, String endUserId) async {
+    List<String> chatroom = [userId, endUserId];
+    chatroom.sort();
+    String chatroomid = chatroom.join("-");
+    print(chatroomid);
+    String metadata = "audio/mpeg";
+    File file = File(filePath);
+    try {
+      await _firebaseStorage
+          .ref('voices/$chatroomid/$fileName.mp3')
+          .putFile(file, SettableMetadata(contentType: metadata));
+    } on FirebaseException catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> uploadImageOnWeb(dynamic fileBytes, String fileName,
       String userId, String endUserId) async {
     List<String> chatroom = [userId, endUserId];
     chatroom.sort();
@@ -110,11 +128,6 @@ class ChattingService extends ChangeNotifier {
 
       // Sort the download URLs based on creation date in descending order
       downloadURLs.sort((a, b) => a.created!.compareTo(b.created!));
-      // downloadURLs.forEach((chatImage) {
-      // print('Download URL: ${chatImage.downloadURL}');
-      // print('Created: ${chatImage.created}');
-      // });
-      // print('Last Download URL: ${downloadURLs.last.downloadURL}');
     } catch (e) {
       print(e);
     }
@@ -160,19 +173,4 @@ class ChatImage {
   DateTime? created;
 
   ChatImage({required this.downloadURL, required this.created});
-}
-
-Future<void> removeExpiredDocuments() async {
-  final now = Timestamp.now();
-  final ts =
-      Timestamp.fromMillisecondsSinceEpoch(now.millisecondsSinceEpoch - 1000);
-
-  final collectionRef = FirebaseFirestore.instance.collection('chat_rooms');
-  final snapshot =
-      await collectionRef.where('publishedAt', isLessThan: ts).get();
-
-  final deletionFutures = snapshot.docs.map((doc) => doc.reference.delete());
-  await Future.wait(deletionFutures);
-
-  print('Expired documents removed successfully');
 }

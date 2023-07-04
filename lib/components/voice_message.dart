@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:chat_app/services/chatting/chatting_service.dart';
 import 'package:flutter/material.dart';
-import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart' as audio;
 import 'package:flutter_sound/flutter_sound.dart';
 
@@ -12,6 +11,7 @@ class VoiceMessage extends StatefulWidget {
 }
 
 class _VoiceMessageState extends State<VoiceMessage> {
+  final ChattingService _chattingService = ChattingService();
   late FlutterSoundRecorder myRecorder;
   late audio.AudioPlayer audioPlayer;
   bool isRecording = false;
@@ -56,9 +56,9 @@ class _VoiceMessageState extends State<VoiceMessage> {
   Future<void> startRecording() async {
     try {
       await myRecorder.openRecorder().then((e) async {
-        var path = await myRecorder.startRecorder(
+        await myRecorder.startRecorder(
           codec: Codec.defaultCodec,
-          toFile: 'foo',
+          toFile: 'voiceStore',
         );
         return 'ok';
       });
@@ -77,6 +77,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
         isRecording = false;
         audioPath = path!;
       });
+      print("fuck aaaaaaaaaaaaaaa$audioPath");
     } catch (e) {
       print("error stopping recording: $e");
     }
@@ -121,7 +122,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
               if (!isRecording && audioPath != null)
                 ElevatedButton(
                   onPressed: playRecording,
-                  child: const Text('Play Recording'),
+                  child: const Text('Upload Recording'),
                 ),
               Slider(
                 min: 0.0,

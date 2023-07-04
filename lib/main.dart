@@ -29,8 +29,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // home: const AuthGate(),
-      home: const VoiceMessage(),
+      home: const AuthGate(),
+      // home: const VoiceMessage(),
     );
   }
 }

@@ -46,7 +46,6 @@ dependencies:
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
   loading_animation_widget: ^1.2.0+4
-  record: ^4.4.4
   audioplayers: ^4.1.0
   permission_handler: 
   just_audio: ^0.9.34
