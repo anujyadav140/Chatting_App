@@ -1,5 +1,6 @@
 import 'dart:math';
-
+import 'dart:html' as html;
+import 'package:http/http.dart' as http;
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/components/my_textfield.dart';
@@ -17,6 +18,7 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ChattingPage extends StatefulWidget {
   final String endUserEmail;
@@ -104,32 +106,75 @@ class _ChattingPageState extends State<ChattingPage> {
   }
 
   Future<void> startRecording() async {
-    try {
-      await myRecorder.openRecorder().then((e) async {
-        await myRecorder.startRecorder(
-          codec: Codec.defaultCodec,
-          toFile: 'voiceStore',
-        );
-        return 'ok';
-      });
-      setState(() {
-        isRecording = true;
-      });
-    } catch (e) {
-      print("error recording stuff: $e");
+    if (isAndroid()) {
+      try {
+        // Request microphone permission
+        PermissionStatus status = await Permission.microphone.request();
+        if (status != PermissionStatus.granted) {
+          print("Microphone permission denied");
+          return; // Exit the method if permission is not granted
+        }
+
+        await myRecorder.openRecorder().then((e) async {
+          await myRecorder.startRecorder(
+            codec: Codec.defaultCodec,
+            toFile: 'voiceStore',
+          );
+          return 'ok';
+        });
+        setState(() {
+          isRecording = true;
+        });
+      } catch (e) {
+        print("Error recording stuff: $e");
+      }
+    } else if (!isAndroid()) {
+      try {
+        await myRecorder.openRecorder().then((e) async {
+          await myRecorder.startRecorder(
+            codec: Codec.defaultCodec,
+            toFile: 'voiceStore',
+          );
+          return 'ok';
+        });
+        setState(() {
+          isRecording = true;
+        });
+      } catch (e) {
+        print("Error recording stuff: $e");
+      }
     }
   }
 
   Future<void> stopRecording() async {
-    try {
-      String? path = await myRecorder.stopRecorder();
-      setState(() {
-        isRecording = false;
-        audioPath = path!;
-      });
-      print(audioPath);
-    } catch (e) {
-      print("error stopping recording: $e");
+    if (isAndroid()) {
+      try {
+        // Check if permission is granted
+        if (!(await Permission.microphone.isGranted)) {
+          print("Microphone permission not granted");
+          return; // Exit the method if permission is not granted
+        }
+
+        String? path = await myRecorder.stopRecorder();
+        setState(() {
+          isRecording = false;
+          audioPath = path!;
+        });
+        print(audioPath);
+      } catch (e) {
+        print("Error stopping recording: $e");
+      }
+    } else if (!isAndroid()) {
+      try {
+        String? path = await myRecorder.stopRecorder();
+        setState(() {
+          isRecording = false;
+          audioPath = path!;
+        });
+        // print(audioPath);
+      } catch (e) {
+        print("Error stopping recording: $e");
+      }
     }
   }
 
@@ -380,13 +425,25 @@ class _ChattingPageState extends State<ChattingPage> {
             print("hello");
             startRecording();
           },
-          onLongPressEnd: (details) {
-            print(details);
-            stopRecording();
-            String fileName =
-                "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
-            _chattingService.uploadVoiceMessage(audioPath, fileName,
-                widget.endUserId, _firebaseAuth.currentUser!.uid);
+          onLongPressEnd: (details) async {
+            if (isAndroid()) {
+              print(details);
+              stopRecording();
+              String fileName =
+                  "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
+              _chattingService.uploadVoiceMessage(audioPath, fileName,
+                  widget.endUserId, _firebaseAuth.currentUser!.uid);
+            } else if (!isAndroid()) {
+              stopRecording();
+              String fileName =
+                  "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
+              Uri blobUri =
+                  Uri.parse(html.window.sessionStorage["voiceStore"]!);
+              http.Response response = await http.get(blobUri);
+              print(response.bodyBytes);
+              _chattingService.uploadVoiceMessageOnWeb(response.bodyBytes,
+                  fileName, widget.endUserId, _firebaseAuth.currentUser!.uid);
+            }
           },
           child:
               const IconButton(onPressed: null, icon: Icon(Icons.voice_chat)),

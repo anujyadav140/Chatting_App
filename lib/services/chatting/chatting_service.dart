@@ -91,6 +91,24 @@ class ChattingService extends ChangeNotifier {
     }
   }
 
+  //upload voice message on web
+  //upload voice message
+  Future<void> uploadVoiceMessageOnWeb(dynamic fileBytes, String fileName,
+      String userId, String endUserId) async {
+    List<String> chatroom = [userId, endUserId];
+    chatroom.sort();
+    String chatroomid = chatroom.join("-");
+    print(chatroomid);
+    String metadata = "audio/mpeg";
+    try {
+      await _firebaseStorage
+          .ref('voices/$chatroomid/$fileName.mp3')
+          .putData(fileBytes, SettableMetadata(contentType: metadata));
+    } on FirebaseException catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> uploadImageOnWeb(dynamic fileBytes, String fileName,
       String userId, String endUserId) async {
     List<String> chatroom = [userId, endUserId];
