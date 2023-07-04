@@ -50,6 +50,7 @@ dependencies:
   audioplayers: ^4.1.0
   permission_handler: 
   just_audio: ^0.9.34
+  flutter_sound: ^9.2.13
   
 dev_dependencies:
   flutter_test:

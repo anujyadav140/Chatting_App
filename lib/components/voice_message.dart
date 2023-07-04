@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audioplayers/audioplayers.dart' as audio;
+import 'package:flutter_sound/flutter_sound.dart';
 
 class VoiceMessage extends StatefulWidget {
   const VoiceMessage({super.key});
@@ -11,23 +12,23 @@ class VoiceMessage extends StatefulWidget {
 }
 
 class _VoiceMessageState extends State<VoiceMessage> {
-  late Record audioRecord;
-  late AudioPlayer audioPlayer;
+  late FlutterSoundRecorder myRecorder;
+  late audio.AudioPlayer audioPlayer;
   bool isRecording = false;
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   String audioPath = '';
-  late Source urlSource;
+  late audio.Source urlSource;
   late String recordingUrl;
   @override
   void initState() {
-    audioPlayer = AudioPlayer();
-    audioRecord = Record();
+    audioPlayer = audio.AudioPlayer();
+    myRecorder = FlutterSoundRecorder();
 
     audioPlayer.onPlayerStateChanged.listen((event) {
       setState(() {
-        isPlaying = event == PlayerState.playing;
+        isPlaying = event == audio.PlayerState.playing;
       });
     });
 
@@ -48,19 +49,22 @@ class _VoiceMessageState extends State<VoiceMessage> {
   @override
   void dispose() {
     audioPlayer.dispose();
-    audioRecord.dispose();
+    myRecorder.dispositionStream();
     super.dispose();
   }
 
   Future<void> startRecording() async {
-    print("hello");
     try {
-      if (await audioRecord.hasPermission()) {
-        await audioRecord.start();
-        setState(() {
-          isRecording = true;
-        });
-      }
+      await myRecorder.openRecorder().then((e) async {
+        var path = await myRecorder.startRecorder(
+          codec: Codec.defaultCodec,
+          toFile: 'foo',
+        );
+        return 'ok';
+      });
+      setState(() {
+        isRecording = true;
+      });
     } catch (e) {
       print("error recording stuff: $e");
     }
@@ -68,7 +72,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
 
   Future<void> stopRecording() async {
     try {
-      String? path = await audioRecord.stop();
+      String? path = await myRecorder.stopRecorder();
       setState(() {
         isRecording = false;
         audioPath = path!;
@@ -80,11 +84,8 @@ class _VoiceMessageState extends State<VoiceMessage> {
 
   Future<void> playRecording() async {
     try {
-      Source urlSource = UrlSource(audioPath);
-      if (isAndroid()) {
-        await audioPlayer.play(urlSource);
-      } else {
-      }
+      audio.Source urlSource = audio.UrlSource(audioPath);
+      await audioPlayer.play(urlSource);
     } catch (e) {
       print("error playing recording: $e");
     }
@@ -92,16 +93,6 @@ class _VoiceMessageState extends State<VoiceMessage> {
 
   String formatTime(int seconds) {
     return '${(Duration(seconds: seconds))}'.split('.')[0].padLeft(8, '0');
-  }
-
-  bool isAndroid() {
-    if (kIsWeb) {
-      // Running on the web
-      return false;
-    } else {
-      // Running on Android
-      return true;
-    }
   }
 
   @override
