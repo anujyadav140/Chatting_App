@@ -161,6 +161,10 @@ class _ChattingPageState extends State<ChattingPage> {
           audioPath = path!;
         });
         print(audioPath);
+        String fileName =
+            "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
+        _chattingService.uploadVoiceMessage(audioPath, fileName,
+            widget.endUserId, _firebaseAuth.currentUser!.uid);
       } catch (e) {
         print("Error stopping recording: $e");
       }
@@ -171,6 +175,13 @@ class _ChattingPageState extends State<ChattingPage> {
           isRecording = false;
           audioPath = path!;
         });
+        String fileName =
+            "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
+        Uri blobUri = Uri.parse(html.window.sessionStorage["voiceStore"]!);
+        http.Response response = await http.get(blobUri);
+        print(response.bodyBytes);
+        _chattingService.uploadVoiceMessageOnWeb(response.bodyBytes, fileName,
+            widget.endUserId, _firebaseAuth.currentUser!.uid);
         // print(audioPath);
       } catch (e) {
         print("Error stopping recording: $e");
@@ -429,20 +440,8 @@ class _ChattingPageState extends State<ChattingPage> {
             if (isAndroid()) {
               print(details);
               stopRecording();
-              String fileName =
-                  "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
-              _chattingService.uploadVoiceMessage(audioPath, fileName,
-                  widget.endUserId, _firebaseAuth.currentUser!.uid);
             } else if (!isAndroid()) {
               stopRecording();
-              String fileName =
-                  "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
-              Uri blobUri =
-                  Uri.parse(html.window.sessionStorage["voiceStore"]!);
-              http.Response response = await http.get(blobUri);
-              print(response.bodyBytes);
-              _chattingService.uploadVoiceMessageOnWeb(response.bodyBytes,
-                  fileName, widget.endUserId, _firebaseAuth.currentUser!.uid);
             }
           },
           child:
