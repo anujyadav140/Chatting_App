@@ -471,8 +471,12 @@ class _ChattingPageState extends State<ChattingPage> {
               stopRecording();
             }
           },
-          child:
-              const IconButton(onPressed: null, icon: Icon(Icons.mic_rounded)),
+          child: const IconButton(
+              onPressed: null,
+              icon: Icon(
+                Icons.mic_rounded,
+                color: Colors.red,
+              )),
         ),
       ],
     );
