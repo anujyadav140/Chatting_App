@@ -55,33 +55,36 @@ class _VoiceMessageState extends State<VoiceMessage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
-      width: 400,
-      color: widget.chatBubbleColor,
+      height: 80,
+      width: 300,
       alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: widget.chatBubbleColor,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 18.0),
-            child: Controls(
-              audioPlayer: player,
-              voiceUrl: "${widget.voiceUrl}.mp3",
-            ),
+          Controls(
+            audioPlayer: player,
+            voiceUrl: "${widget.voiceUrl}.mp3",
           ),
           Expanded(
             child: StreamBuilder<PositionData>(
               stream: _positionDataStream,
               builder: (context, snapshot) {
                 final positionData = snapshot.data;
-                return ProgressBar(
-                  progress: positionData?.position ?? Duration.zero,
-                  buffered: positionData?.bufferedPosition ?? Duration.zero,
-                  total: positionData?.duration ?? Duration.zero,
-                  onSeek: player.seek,
-                  baseBarColor: Colors.white,
-                  progressBarColor: Colors.white,
-                  thumbColor: Colors.white,
+                return Padding(
+                  padding: const EdgeInsets.only(top: 15.0, right: 15.0),
+                  child: ProgressBar(
+                    progress: positionData?.position ?? Duration.zero,
+                    buffered: positionData?.bufferedPosition ?? Duration.zero,
+                    total: positionData?.duration ?? Duration.zero,
+                    onSeek: player.seek,
+                    baseBarColor: Colors.white,
+                    progressBarColor: Colors.white,
+                    thumbColor: Colors.white,
+                  ),
                 );
               },
             ),
