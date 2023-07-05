@@ -42,6 +42,22 @@ class ChattingService extends ChangeNotifier {
         .add(newMessage.toMap());
   }
 
+  //delete message documents from firestore
+  Future<void> deleteMessages(String endUserId, String id) async {
+    final String currentUserId = _firebaseAuth.currentUser!.uid;
+    List<String> chatroom = [currentUserId, endUserId];
+    chatroom
+        .sort(); //this ensures that chatroom id is always the same for any pair of users
+    String chatroomId = chatroom
+        .join("-"); //combine the two chatroom id into one as a unique chatroom
+    await _firestore
+        .collection('chat_rooms')
+        .doc(chatroomId)
+        .collection('messages')
+        .doc(id)
+        .delete();
+  }
+
   //get message
   Stream<QuerySnapshot> getMessages(String userId, String endUserId) {
     //construct chat room id from user ids (sorted to ensure it matches the id used when sending the message prior)

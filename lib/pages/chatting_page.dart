@@ -363,6 +363,7 @@ class _ChattingPageState extends State<ChattingPage> {
               shrinkWrap: true,
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
+                print(snapshot.data!.docs.map((e) => e.id));
                 return _buildMessageItem(snapshot.data!.docs[index]);
               },
             ),
@@ -396,31 +397,55 @@ class _ChattingPageState extends State<ChattingPage> {
           children: [
             Text(data['senderEmail']),
             data['message'].toString().isNotEmpty
-                ? ChatBubble(
-                    message: data['message'],
-                    image: null,
-                    isImage: false,
-                    chatBubbleColor:
-                        data['senderId'] == _firebaseAuth.currentUser!.uid
-                            ? chatBubbleColor = Colors.blueAccent
-                            : chatBubbleColor = Colors.pinkAccent,
+                ? GestureDetector(
+                    onLongPress: () {
+                      print("Delete!");
+                      print(document.id);
+                      _chattingService.deleteMessages(
+                          widget.endUserId, document.id);
+                    },
+                    child: ChatBubble(
+                      message: data['message'],
+                      image: null,
+                      isImage: false,
+                      chatBubbleColor:
+                          data['senderId'] == _firebaseAuth.currentUser!.uid
+                              ? chatBubbleColor = Colors.blueAccent
+                              : chatBubbleColor = Colors.pinkAccent,
+                    ),
                   )
                 : data['image'].toString().isNotEmpty
-                    ? ChatBubble(
-                        message: null,
-                        image: data['image'],
-                        isImage: true,
-                        chatBubbleColor:
-                            data['senderId'] == _firebaseAuth.currentUser!.uid
-                                ? chatBubbleColor = Colors.blueAccent
-                                : chatBubbleColor = Colors.pinkAccent,
+                    ? GestureDetector(
+                        onLongPress: () {
+                          print("Delete!");
+                          print(document.id);
+                          _chattingService.deleteMessages(
+                              widget.endUserId, document.id);
+                        },
+                        child: ChatBubble(
+                          message: null,
+                          image: data['image'],
+                          isImage: true,
+                          chatBubbleColor:
+                              data['senderId'] == _firebaseAuth.currentUser!.uid
+                                  ? chatBubbleColor = Colors.blueAccent
+                                  : chatBubbleColor = Colors.pinkAccent,
+                        ),
                       )
-                    : VoiceMessage(
-                        voiceUrl: data['voice'],
-                        chatBubbleColor:
-                            data['senderId'] == _firebaseAuth.currentUser!.uid
-                                ? chatBubbleColor = Colors.blueAccent
-                                : chatBubbleColor = Colors.pinkAccent,
+                    : GestureDetector(
+                        onLongPress: () {
+                          print("Delete!");
+                          print(document.id);
+                          _chattingService.deleteMessages(
+                              widget.endUserId, document.id);
+                        },
+                        child: VoiceMessage(
+                          voiceUrl: data['voice'],
+                          chatBubbleColor:
+                              data['senderId'] == _firebaseAuth.currentUser!.uid
+                                  ? chatBubbleColor = Colors.blueAccent
+                                  : chatBubbleColor = Colors.pinkAccent,
+                        ),
                       ),
           ],
         ),
@@ -471,12 +496,15 @@ class _ChattingPageState extends State<ChattingPage> {
               stopRecording();
             }
           },
-          child: const IconButton(
-              onPressed: null,
-              icon: Icon(
-                Icons.mic_rounded,
-                color: Colors.red,
-              )),
+          child: const CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: IconButton(
+                onPressed: null,
+                icon: Icon(
+                  Icons.mic_rounded,
+                  color: Colors.white,
+                )),
+          ),
         ),
       ],
     );
