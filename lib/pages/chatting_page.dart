@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'dart:html' as html;
-import 'package:http/http.dart' as http;
+// import 'dart:html' as html;
+// import 'package:http/http.dart' as http;
 import 'package:chat_app/components/voice_message.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
@@ -186,22 +186,22 @@ class _ChattingPageState extends State<ChattingPage> {
         });
         String fileName =
             "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
-        Uri blobUri = Uri.parse(html.window.sessionStorage["voiceStore"]!);
-        http.Response response = await http.get(blobUri);
-        print(response.bodyBytes);
-        _chattingService
-            .uploadVoiceMessageOnWeb(response.bodyBytes, fileName,
-                widget.endUserId, _firebaseAuth.currentUser!.uid)
-            .then((value) => print("Voice file uploaded! :)"))
-            .whenComplete(() => _chattingService
-                    .getVoiceDownloadURL(
-                        widget.endUserId, _firebaseAuth.currentUser!.uid)
-                    .then((value) {
-                  print(value);
-                  _chattingService.getVoices(
-                      widget.endUserId, value.toString());
-                }));
-        print(audioPath);
+        // Uri blobUri = Uri.parse(html.window.sessionStorage["voiceStore"]!);
+        // http.Response response = await http.get(blobUri);
+        // print(response.bodyBytes);
+        // _chattingService
+        //     .uploadVoiceMessageOnWeb(response.bodyBytes, fileName,
+        //         widget.endUserId, _firebaseAuth.currentUser!.uid)
+        //     .then((value) => print("Voice file uploaded! :)"))
+        //     .whenComplete(() => _chattingService
+        //             .getVoiceDownloadURL(
+        //                 widget.endUserId, _firebaseAuth.currentUser!.uid)
+        //             .then((value) {
+        //           print(value);
+        //           _chattingService.getVoices(
+        //               widget.endUserId, value.toString());
+        //         }));
+        // print(audioPath);
       } catch (e) {
         print("Error stopping recording: $e");
       }
@@ -415,7 +415,13 @@ class _ChattingPageState extends State<ChattingPage> {
                                 ? chatBubbleColor = Colors.blueAccent
                                 : chatBubbleColor = Colors.pinkAccent,
                       )
-                    : VoiceMessage(voiceUrl: data['voice']),
+                    : VoiceMessage(
+                        voiceUrl: data['voice'],
+                        chatBubbleColor:
+                            data['senderId'] == _firebaseAuth.currentUser!.uid
+                                ? chatBubbleColor = Colors.blueAccent
+                                : chatBubbleColor = Colors.pinkAccent,
+                      ),
           ],
         ),
       ),

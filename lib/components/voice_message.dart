@@ -16,10 +16,14 @@ class PositionData {
 }
 
 class VoiceMessage extends StatefulWidget {
-  const VoiceMessage({super.key, required this.voiceUrl});
+  VoiceMessage({
+    super.key,
+    required this.voiceUrl,
+    required this.chatBubbleColor,
+  });
 
   final String voiceUrl;
-
+  Color chatBubbleColor;
   @override
   State<VoiceMessage> createState() => _VoiceMessageState();
 }
@@ -39,7 +43,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
   @override
   void initState() {
     super.initState();
-    player = AudioPlayer()..setUrl(widget.voiceUrl);
+    player = AudioPlayer()..setUrl("${widget.voiceUrl}.mp3");
   }
 
   @override
@@ -53,7 +57,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
     return Container(
       height: 100,
       width: 400,
-      color: Colors.black,
+      color: widget.chatBubbleColor,
       alignment: Alignment.center,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -62,7 +66,7 @@ class _VoiceMessageState extends State<VoiceMessage> {
             padding: const EdgeInsets.only(bottom: 18.0),
             child: Controls(
               audioPlayer: player,
-              voiceUrl: widget.voiceUrl,
+              voiceUrl: "${widget.voiceUrl}.mp3",
             ),
           ),
           Expanded(
@@ -75,6 +79,9 @@ class _VoiceMessageState extends State<VoiceMessage> {
                   buffered: positionData?.bufferedPosition ?? Duration.zero,
                   total: positionData?.duration ?? Duration.zero,
                   onSeek: player.seek,
+                  baseBarColor: Colors.white,
+                  progressBarColor: Colors.white,
+                  thumbColor: Colors.white,
                 );
               },
             ),
@@ -109,21 +116,21 @@ class Controls extends StatelessWidget {
             },
             icon: const Icon(Icons.play_arrow_rounded),
             iconSize: 45,
-            color: Colors.red,
+            color: Colors.white,
           );
         } else if (playing == true) {
           return IconButton(
             onPressed: audioPlayer.pause,
             icon: const Icon(Icons.pause_circle_rounded),
             iconSize: 45,
-            color: Colors.red,
+            color: Colors.white,
           );
         }
 
         return const Icon(
           Icons.play_arrow_rounded,
           size: 45,
-          color: Colors.red,
+          color: Colors.white,
         );
       },
     );
