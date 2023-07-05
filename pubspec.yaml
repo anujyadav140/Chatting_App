@@ -46,10 +46,12 @@ dependencies:
   highlight_text: ^1.6.0
   avatar_glow: ^2.0.2
   loading_animation_widget: ^1.2.0+4
-  audioplayers: ^4.1.0
   permission_handler: 
   just_audio: ^0.9.34
   flutter_sound: ^9.2.13
+  rxdart: ^0.27.7
+  audio_video_progress_bar: ^1.0.1
+  audio_service: ^0.18.10
   
 dev_dependencies:
   flutter_test:

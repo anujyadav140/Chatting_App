@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:html' as html;
 import 'package:http/http.dart' as http;
+import 'package:chat_app/components/voice_message.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/services/chatting/chatting_service.dart';
@@ -15,6 +16,7 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:just_audio/just_audio.dart';
 
 class ChattingPage extends StatefulWidget {
   final String endUserEmail;
@@ -38,7 +40,7 @@ class _ChattingPageState extends State<ChattingPage> {
   late String speech = '';
   bool _isListening = false;
   bool isImage = false;
-  bool isVoiceMessage = false;
+  bool isVoice = false;
   bool isRecording = false;
   String audioPath = '';
   @override
@@ -159,8 +161,19 @@ class _ChattingPageState extends State<ChattingPage> {
         print(audioPath);
         String fileName =
             "${_firebaseAuth.currentUser!.uid}_${Random().nextInt(1000000)}";
-        _chattingService.uploadVoiceMessage(audioPath, fileName,
-            widget.endUserId, _firebaseAuth.currentUser!.uid);
+        _chattingService
+            .uploadVoiceMessageonMobile(audioPath, fileName, widget.endUserId,
+                _firebaseAuth.currentUser!.uid)
+            .then((value) => print("Voice file uploaded! :)"))
+            .whenComplete(() => _chattingService
+                    .getVoiceDownloadURL(
+                        widget.endUserId, _firebaseAuth.currentUser!.uid)
+                    .then((value) {
+                  print(value);
+                  _chattingService.getVoices(
+                      widget.endUserId, value.toString());
+                }));
+        print(audioPath);
       } catch (e) {
         print("Error stopping recording: $e");
       }
@@ -176,9 +189,19 @@ class _ChattingPageState extends State<ChattingPage> {
         Uri blobUri = Uri.parse(html.window.sessionStorage["voiceStore"]!);
         http.Response response = await http.get(blobUri);
         print(response.bodyBytes);
-        _chattingService.uploadVoiceMessageOnWeb(response.bodyBytes, fileName,
-            widget.endUserId, _firebaseAuth.currentUser!.uid);
-        // print(audioPath);
+        _chattingService
+            .uploadVoiceMessageOnWeb(response.bodyBytes, fileName,
+                widget.endUserId, _firebaseAuth.currentUser!.uid)
+            .then((value) => print("Voice file uploaded! :)"))
+            .whenComplete(() => _chattingService
+                    .getVoiceDownloadURL(
+                        widget.endUserId, _firebaseAuth.currentUser!.uid)
+                    .then((value) {
+                  print(value);
+                  _chattingService.getVoices(
+                      widget.endUserId, value.toString());
+                }));
+        print(audioPath);
       } catch (e) {
         print("Error stopping recording: $e");
       }
@@ -382,15 +405,17 @@ class _ChattingPageState extends State<ChattingPage> {
                             ? chatBubbleColor = Colors.blueAccent
                             : chatBubbleColor = Colors.pinkAccent,
                   )
-                : ChatBubble(
-                    message: null,
-                    image: data['image'],
-                    isImage: true,
-                    chatBubbleColor:
-                        data['senderId'] == _firebaseAuth.currentUser!.uid
-                            ? chatBubbleColor = Colors.blueAccent
-                            : chatBubbleColor = Colors.pinkAccent,
-                  )
+                : data['image'].toString().isNotEmpty
+                    ? ChatBubble(
+                        message: null,
+                        image: data['image'],
+                        isImage: true,
+                        chatBubbleColor:
+                            data['senderId'] == _firebaseAuth.currentUser!.uid
+                                ? chatBubbleColor = Colors.blueAccent
+                                : chatBubbleColor = Colors.pinkAccent,
+                      )
+                    : VoiceMessage(voiceUrl: data['voice']),
           ],
         ),
       ),
