@@ -1,4 +1,5 @@
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:chat_app/pages/chatGPT.dart';
 import 'package:chat_app/pages/chatting_page.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,23 +111,36 @@ class _HomePageState extends State<HomePage> {
 
   // build a list of users except the current logged in user
   Widget _buildUserList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').snapshots(),
-      builder: (context, snapshot) {
-        if (!_isListening) {
-          if (snapshot.hasError) {
-            return const Text("Something went wrong ...");
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading ...");
-          }
-        }
-        return ListView(
-          children: snapshot.data!.docs
-              .map<Widget>((doc) => _buildUserListItem(doc))
-              .toList(),
-        );
-      },
+    return Column(
+      children: [
+        ListTile(
+          title: const Text("ChatGPT & DALL-E"),
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const ChatGPT()));
+          },
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').snapshots(),
+            builder: (context, snapshot) {
+              if (!_isListening) {
+                if (snapshot.hasError) {
+                  return const Text("Something went wrong ...");
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text("Loading ...");
+                }
+              }
+              return ListView(
+                children: snapshot.data!.docs
+                    .map<Widget>((doc) => _buildUserListItem(doc))
+                    .toList(),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

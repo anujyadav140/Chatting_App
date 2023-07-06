@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chat_app/model/chatGPT_model.dart';
 import 'package:chat_app/model/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,6 +43,31 @@ class ChattingService extends ChangeNotifier {
         .add(newMessage.toMap());
   }
 
+  //Send message
+  Future<void> sendMessageChatGPT(
+      String user, String content) async {
+    //get current user info
+    final String currentUserId = _firebaseAuth.currentUser!.uid;
+    final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
+    final Timestamp timestamp = Timestamp.now();
+    //create a new message
+    ChatGPT newGPTMessage = ChatGPT(
+      user: user,
+      content: content,
+      time: timestamp,
+    );
+    //construct chat room id from current user id and receiver id (sorted to uniqueness)
+    List<String> chatroom = [currentUserId, "ChatGPT"];
+    String chatroomId = chatroom
+        .join("-"); //combine the two chatroom id into one as a unique chatroom
+    //add new message to the db
+    await _firestore
+        .collection('chat_rooms')
+        .doc(chatroomId)
+        .collection('messages')
+        .add(newGPTMessage.toMap());
+  }
+
   //delete message documents from firestore
   Future<void> deleteMessages(String endUserId, String id) async {
     final String currentUserId = _firebaseAuth.currentUser!.uid;
@@ -63,6 +89,21 @@ class ChattingService extends ChangeNotifier {
     //construct chat room id from user ids (sorted to ensure it matches the id used when sending the message prior)
     List<String> chatroom = [userId, endUserId];
     chatroom.sort();
+    String chatroomId = chatroom.join("-");
+
+    return _firestore
+        .collection('chat_rooms')
+        .doc(chatroomId)
+        .collection('messages')
+        .orderBy('timestamp', descending: false)
+        .snapshots();
+  }
+
+  //get messages from GPT
+  Stream<QuerySnapshot> getMessagesFromGPT(String userId) {
+    //construct chat room id from user ids (sorted to ensure it matches the id used when sending the message prior)
+    List<String> chatroom = [userId, "ChatGPT"];
+    // chatroom.sort();
     String chatroomId = chatroom.join("-");
 
     return _firestore

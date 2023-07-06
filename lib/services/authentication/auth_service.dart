@@ -55,4 +55,11 @@ class AuthService extends ChangeNotifier {
   Future<void> logout() async {
     return await FirebaseAuth.instance.signOut();
   }
+
+  int tokenCounterValue = 0;
+  Future<int> tokenCounter() async {
+    tokenCounterValue++;
+    notifyListeners();
+    return tokenCounterValue;
+  }
 }

@@ -1,4 +1,3 @@
-import 'package:chat_app/components/voice_message.dart';
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/services/authentication/auth_gate.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
@@ -27,10 +26,6 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const AuthGate(),
-      // home: const VoiceMessage(
-      //   voiceUrl:
-      //       'https://firebasestorage.googleapis.com/v0/b/chatting-app-cf41d.appspot.com/o/voices%2FFDBiGbllT9Y2ZKdBLvFCvlmrXWm2-jXD0BKuG8xeNMEPC0jYfi38rC483%2FjXD0BKuG8xeNMEPC0jYfi38rC483_137556.mp3?alt=media&token=823475db-809b-482f-8bcd-5f337a23389e.mp3',
-      // ),
     );
   }
 }
