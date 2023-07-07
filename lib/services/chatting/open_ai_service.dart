@@ -40,7 +40,7 @@ class OpenAiService {
             return response;
         }
       }
-      return 'Something went wrong ... Please, try to me more precise in the questions you ask.';
+      return 'That model is currently overloaded with other requests. You can retry your request ...';
     } catch (e) {
       return e.toString();
     }

@@ -56,14 +56,24 @@ class AuthService extends ChangeNotifier {
     return await FirebaseAuth.instance.signOut();
   }
 
+  //toke state change
   int tokenCounterValue = 0;
   bool tokenAuth = true;
-  Future<int> tokenCounter() async {
+  Future<int> tokenCounter(String currentUserUid) async {
     tokenCounterValue++;
     if (tokenCounterValue >= 5) {
       tokenAuth = false;
     }
-    notifyListeners();
+    try {
+      //after state change store it in firestore
+      _firestore.collection('users-state').doc(currentUserUid).set(({
+            'tokenCount': tokenCounterValue,
+            'tokenBoolean': tokenAuth,
+          }));
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.code);
+    }
+
     return tokenCounterValue;
   }
 }

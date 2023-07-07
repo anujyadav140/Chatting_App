@@ -27,6 +27,29 @@ class _ChatGPTState extends State<ChatGPT> {
   late Timer _timer;
   int _start = 30;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _timer = Timer(Duration.zero, () {});
+  }
+
+  // Future<void> getTokenStateData() async {
+  //   QuerySnapshot snapshot =
+  //       await FirebaseFirestore.instance.collection('users-state').get();
+  //   // Process the data in the snapshot
+  //   for (var doc in snapshot.docs) {
+  //     print(doc.data());
+  //     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //     setState(() {
+  //       tokenBoolean = data['tokenBoolean'] ?? false;
+  //       tokenCount = data['tokenCount'] ?? 0;
+  //       print('tokenBoolean: $tokenBoolean');
+  //       print('tokenCount: $tokenCount');
+  //     });
+  //   }
+  // }
+
   void startTimer() {
     isTimerRunning = true;
     const oneSec = Duration(seconds: 1);
@@ -76,19 +99,12 @@ class _ChatGPTState extends State<ChatGPT> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final myTokenCounterState =
-        Provider.of<AuthService>(context, listen: false);
-
-    void tokenCounterState() {
-      myTokenCounterState.tokenCounter();
-    }
-
     return Scaffold(
       appBar: AppBar(
           title: Row(
@@ -102,10 +118,6 @@ class _ChatGPTState extends State<ChatGPT> {
             "Timer: $_start",
             style: const TextStyle(fontSize: 12),
           ),
-          Text(
-            "Tokens used: ${myTokenCounterState.tokenCounterValue}/5",
-            style: const TextStyle(fontSize: 12),
-          )
         ],
       )),
       body: Stack(
@@ -113,7 +125,7 @@ class _ChatGPTState extends State<ChatGPT> {
           Column(
             children: [
               Expanded(child: _displayGPTMessageList()),
-              _writeMessageInput(tokenCounterState, myTokenCounterState),
+              _writeMessageInput(),
             ],
           )
         ],
@@ -204,17 +216,15 @@ class _ChatGPTState extends State<ChatGPT> {
   }
 
 //write message input
-  Widget _writeMessageInput(
-      Function tokenFunction, AuthService myTokenCounterState) {
+  Widget _writeMessageInput() {
     return Row(
       children: [
         Expanded(
           child: TextField(
-            enabled: (myTokenCounterState.tokenAuth && !isTimerRunning),
+            enabled: (!isTimerRunning),
             controller: _messageController,
             focusNode: _messageFocusNode,
             onSubmitted: (value) {
-              tokenFunction();
               sendGPTMessage();
               generateGPTMessage();
             },
@@ -227,11 +237,9 @@ class _ChatGPTState extends State<ChatGPT> {
               ),
               fillColor: Colors.grey[200],
               filled: true,
-              hintText: myTokenCounterState.tokenAuth
-                  ? (!isTimerRunning)
-                      ? "Write a message ..."
-                      : "Wait for the cooldown; So that there aren't too many requests"
-                  : "You have reached the limit!! Try again tomorrow",
+              hintText: (!isTimerRunning)
+                  ? "Write a message ..."
+                  : "Wait for the cooldown; So that there aren't too many requests",
               hintStyle: const TextStyle(color: Colors.black),
             ),
           ),

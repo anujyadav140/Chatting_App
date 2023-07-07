@@ -44,8 +44,7 @@ class ChattingService extends ChangeNotifier {
   }
 
   //Send message
-  Future<void> sendMessageChatGPT(
-      String user, String content) async {
+  Future<void> sendMessageChatGPT(String user, String content) async {
     //get current user info
     final String currentUserId = _firebaseAuth.currentUser!.uid;
     final String currentUserEmail = _firebaseAuth.currentUser!.email.toString();
