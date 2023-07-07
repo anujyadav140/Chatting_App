@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:chat_app/components/chat_bubble.dart';
 import 'package:chat_app/services/authentication/auth_service.dart';
 import 'package:chat_app/services/chatting/chatting_service.dart';
@@ -21,9 +22,32 @@ class _ChatGPTState extends State<ChatGPT> {
   final FocusNode _messageFocusNode = FocusNode();
   final ChattingService _chattingService = ChattingService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  bool isAuthroizedGPT = true;
+  bool isTimerRunning = false;
+
+  late Timer _timer;
+  int _start = 30;
+
+  void startTimer() {
+    isTimerRunning = true;
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
+  }
 
   void sendGPTMessage() async {
+    startTimer();
     if (_messageController.text.isNotEmpty) {
       String prompt = _messageController.text;
       await _chattingService.sendMessageChatGPT(prompt, "");
@@ -44,16 +68,18 @@ class _ChatGPTState extends State<ChatGPT> {
   }
 
   @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final myTokenCounterState =
         Provider.of<AuthService>(context, listen: false);
 
     void tokenCounterState() {
       myTokenCounterState.tokenCounter();
-      if (myTokenCounterState.tokenCounterValue == 5) {
-        isAuthroizedGPT = false;
-        print("it is over!");
-      }
     }
 
     return Scaffold(
@@ -61,8 +87,18 @@ class _ChatGPTState extends State<ChatGPT> {
           title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text("CHATGPT & DALL-E"),
-          Text("Tokens used: ${myTokenCounterState.tokenCounterValue}/5")
+          const Text(
+            "CHATGPT & DALL-E",
+            style: TextStyle(fontSize: 12),
+          ),
+          Text(
+            "Timer: $_start",
+            style: const TextStyle(fontSize: 12),
+          ),
+          Text(
+            "Tokens used: ${myTokenCounterState.tokenCounterValue}/5",
+            style: const TextStyle(fontSize: 12),
+          )
         ],
       )),
       body: Stack(
@@ -70,7 +106,7 @@ class _ChatGPTState extends State<ChatGPT> {
           Column(
             children: [
               Expanded(child: _displayGPTMessageList()),
-              _writeMessageInput(tokenCounterState),
+              _writeMessageInput(tokenCounterState, myTokenCounterState),
             ],
           )
         ],
@@ -84,11 +120,13 @@ class _ChatGPTState extends State<ChatGPT> {
             _chattingService.getMessagesFromGPT(_firebaseAuth.currentUser!.uid),
         builder: (context, snapshot) {
           //if statement for the speech to text button !---FIX THE PROBLEM OF THE FLICKERING
-          if (snapshot.hasError) {
-            return Text('Error${snapshot.error}');
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading ...");
+          if (!isTimerRunning) {
+            if (snapshot.hasError) {
+              return Text('Error${snapshot.error}');
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Text("Loading ...");
+            }
           }
           return SingleChildScrollView(
             reverse: true,
@@ -97,7 +135,6 @@ class _ChatGPTState extends State<ChatGPT> {
               shrinkWrap: true,
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
-                print(snapshot.data!.docs.map((e) => e.id));
                 return _displayGPT(snapshot.data!.docs[index]);
               },
             ),
@@ -160,12 +197,13 @@ class _ChatGPTState extends State<ChatGPT> {
   }
 
 //write message input
-  Widget _writeMessageInput(Function tokenFunction) {
+  Widget _writeMessageInput(
+      Function tokenFunction, AuthService myTokenCounterState) {
     return Row(
       children: [
         Expanded(
           child: TextField(
-            enabled: isAuthroizedGPT,
+            enabled: myTokenCounterState.tokenAuth,
             controller: _messageController,
             focusNode: _messageFocusNode,
             onSubmitted: (value) {
@@ -182,7 +220,7 @@ class _ChatGPTState extends State<ChatGPT> {
               ),
               fillColor: Colors.grey[200],
               filled: true,
-              hintText: isAuthroizedGPT
+              hintText: myTokenCounterState.tokenAuth
                   ? "Write a message ..."
                   : "You have reached the limit!! Try again tomorrow",
               hintStyle: const TextStyle(color: Colors.black),

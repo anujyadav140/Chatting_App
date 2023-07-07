@@ -57,8 +57,12 @@ class AuthService extends ChangeNotifier {
   }
 
   int tokenCounterValue = 0;
+  bool tokenAuth = true;
   Future<int> tokenCounter() async {
     tokenCounterValue++;
+    if (tokenCounterValue >= 5) {
+      tokenAuth = false;
+    }
     notifyListeners();
     return tokenCounterValue;
   }

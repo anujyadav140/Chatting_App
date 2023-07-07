@@ -40,7 +40,7 @@ class OpenAiService {
             return response;
         }
       }
-      return 'Something went wrong ...';
+      return 'Something went wrong ... Please, try to me more precise in the questions you ask.';
     } catch (e) {
       return e.toString();
     }
@@ -75,7 +75,7 @@ class OpenAiService {
         });
         return content;
       }
-      return 'An internal error occurred';
+      return 'Too many requests; the amount of requests reached the API limit capacity ...';
     } catch (e) {
       return e.toString();
     }
@@ -93,11 +93,7 @@ class OpenAiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $openAIKey',
         },
-        body: jsonEncode({
-          'prompt': prompt,
-          'n': 1,
-          'size': '256x256'
-        }),
+        body: jsonEncode({'prompt': prompt, 'n': 1, 'size': '256x256'}),
       );
 
       if (res.statusCode == 200) {
