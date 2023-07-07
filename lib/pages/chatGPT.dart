@@ -42,6 +42,13 @@ class _ChatGPTState extends State<ChatGPT> {
             _start--;
           });
         }
+        if (_start == 0) {
+          setState(() {
+            _start = 30;
+            isTimerRunning = false;
+            timer.cancel();
+          });
+        }
       },
     );
   }
@@ -203,7 +210,7 @@ class _ChatGPTState extends State<ChatGPT> {
       children: [
         Expanded(
           child: TextField(
-            enabled: myTokenCounterState.tokenAuth,
+            enabled: (myTokenCounterState.tokenAuth && !isTimerRunning),
             controller: _messageController,
             focusNode: _messageFocusNode,
             onSubmitted: (value) {
@@ -221,7 +228,9 @@ class _ChatGPTState extends State<ChatGPT> {
               fillColor: Colors.grey[200],
               filled: true,
               hintText: myTokenCounterState.tokenAuth
-                  ? "Write a message ..."
+                  ? (!isTimerRunning)
+                      ? "Write a message ..."
+                      : "Wait for the cooldown; So that there aren't too many requests"
                   : "You have reached the limit!! Try again tomorrow",
               hintStyle: const TextStyle(color: Colors.black),
             ),
